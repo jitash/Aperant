@@ -163,6 +163,10 @@ describe('detectProviderFromModel', () => {
     expect(detectProviderFromModel('grok-2')).toBe('xai');
   });
 
+  it('detects MiniMax from MiniMax- prefix', () => {
+    expect(detectProviderFromModel('MiniMax-Text-01')).toBe('minimax');
+  });
+
   it('returns undefined for unknown model', () => {
     expect(detectProviderFromModel('unknown-model')).toBeUndefined();
   });

@@ -70,6 +70,16 @@ function createProviderInstance(config: ProviderConfig) {
       });
     }
 
+    // TODO(tech-debt): consolidate factory/registry switches — see plan §7
+    case SupportedProvider.MiniMax:
+      // MiniMax exposes the Anthropic-compatible API at https://api.minimaxi.com/anthropic.
+      // Users can override the baseURL in account settings.
+      return createAnthropic({
+        apiKey,
+        baseURL: baseURL ?? 'https://api.minimaxi.com/anthropic',
+        headers,
+      });
+
     case SupportedProvider.OpenAI: {
       // File-based OAuth: use generic fetch interceptor for token injection + URL rewriting
       if (config.oauthTokenFilePath) {

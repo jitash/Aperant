@@ -21,6 +21,7 @@ export const SupportedProvider = {
   OpenRouter: 'openrouter',
   ZAI: 'zai',
   Ollama: 'ollama',
+  MiniMax: 'minimax',
 } as const;
 
 export type SupportedProvider = (typeof SupportedProvider)[keyof typeof SupportedProvider];

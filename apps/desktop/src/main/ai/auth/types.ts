@@ -80,6 +80,7 @@ export const PROVIDER_ENV_VARS: Record<SupportedProvider, string | undefined> = 
   openrouter: 'OPENROUTER_API_KEY',
   zai: 'ZHIPU_API_KEY',
   ollama: undefined,   // No auth required for local Ollama
+  minimax: 'MINIMAX_API_KEY',
 } as const;
 
 /**
