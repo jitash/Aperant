@@ -32,6 +32,12 @@ export const PROVIDER_REGISTRY: ProviderInfo[] = [
     configFields: ['baseUrl'], website: 'https://z.ai/model-api',
   },
   {
+    id: 'minimax', name: 'MiniMax', description: 'MiniMax M3 and other MiniMax models',
+    category: 'popular',
+    authMethods: ['api-key'], envVars: ['MINIMAX_API_KEY'],
+    configFields: ['baseUrl'], website: 'https://api.minimaxi.com',
+  },
+  {
     id: 'xai', name: 'xAI', description: 'Grok models',
     category: 'popular',
     authMethods: ['api-key'], envVars: ['XAI_API_KEY'],
