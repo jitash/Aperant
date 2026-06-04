@@ -52,6 +52,15 @@ function createProviderSDKInstance(
     case SupportedProvider.Anthropic:
       return createAnthropic({ apiKey, baseURL, headers });
 
+    // TODO(tech-debt): consolidate factory/registry switches — see plan §7
+    case SupportedProvider.MiniMax:
+      // MiniMax exposes the Anthropic-compatible API at https://api.minimaxi.com/anthropic.
+      return createAnthropic({
+        apiKey,
+        baseURL: baseURL ?? 'https://api.minimaxi.com/anthropic',
+        headers,
+      });
+
     case SupportedProvider.OpenAI:
       return createOpenAI({ apiKey, baseURL, headers });
 
