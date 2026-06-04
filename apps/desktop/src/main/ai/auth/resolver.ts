@@ -331,6 +331,9 @@ const BUILTIN_TO_SUPPORTED: Record<string, SupportedProvider> = {
   xai: 'xai',
   openrouter: 'openrouter',
   zai: 'zai',
+  // MiniMax uses createAnthropic against https://api.minimaxi.com/anthropic,
+  // so it can serve any Claude-format model ID as a passthrough.
+  minimax: 'minimax',
   ollama: 'ollama',
 };
 
