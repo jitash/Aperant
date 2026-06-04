@@ -34,6 +34,7 @@ const PROVIDER_BADGE_COLORS: Record<string, string> = {
   'azure': 'bg-sky-500/10 text-sky-500 border-sky-500/20 hover:bg-sky-500/15',
   'ollama': 'bg-purple-500/10 text-purple-500 border-purple-500/20 hover:bg-purple-500/15',
   'openai-compatible': 'bg-gray-500/10 text-gray-500 border-gray-500/20 hover:bg-gray-500/15',
+  'minimax': 'bg-cyan-500/10 text-cyan-500 border-cyan-500/20 hover:bg-cyan-500/15',
 };
 
 const PROVIDER_I18N_KEYS: Record<string, string> = {
@@ -49,6 +50,7 @@ const PROVIDER_I18N_KEYS: Record<string, string> = {
   'azure': 'common:usage.providerAzure',
   'ollama': 'common:usage.providerOllama',
   'openai-compatible': 'common:usage.providerCustomEndpoint',
+  'minimax': 'common:usage.providerMinimax',
 };
 
 export function AuthStatusIndicator() {
