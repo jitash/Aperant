@@ -3,6 +3,7 @@ import {
   getProviderPreset,
   getProviderPresetOrFallback,
   PROVIDER_PRESET_DEFINITIONS,
+  resolveModelEquivalent,
 } from '../models';
 
 describe('getProviderPreset', () => {
@@ -117,5 +118,90 @@ describe('getProviderPresetOrFallback', () => {
       expect(result.phaseModels[key]).toBeTruthy();
       expect(result.phaseThinking[key]).toBeTruthy();
     }
+  });
+});
+
+// =============================================================================
+// resolveModelEquivalent — minimax provider
+// (Regression for the missing BUILTIN_TO_SUPPORTED entry that caused
+// "No available account in priority queue" for minimax accounts.)
+// =============================================================================
+
+describe('resolveModelEquivalent — minimax provider', () => {
+  it('resolves opus shorthand to claude-opus-4-6 for minimax', () => {
+    const result = resolveModelEquivalent('opus', 'minimax');
+    expect(result).not.toBeNull();
+    expect(result?.modelId).toBe('claude-opus-4-6');
+    expect(result?.reasoning).toEqual({ type: 'adaptive_effort', level: 'high' });
+  });
+
+  it('resolves opus-1m shorthand to claude-opus-4-6 for minimax', () => {
+    const result = resolveModelEquivalent('opus-1m', 'minimax');
+    expect(result).not.toBeNull();
+    expect(result?.modelId).toBe('claude-opus-4-6');
+  });
+
+  it('resolves opus-4.5 shorthand to claude-opus-4-5-20251101 for minimax', () => {
+    const result = resolveModelEquivalent('opus-4.5', 'minimax');
+    expect(result).not.toBeNull();
+    expect(result?.modelId).toBe('claude-opus-4-5-20251101');
+    expect(result?.reasoning).toEqual({ type: 'thinking_tokens', level: 'high' });
+  });
+
+  it('resolves sonnet shorthand to claude-sonnet-4-6 for minimax', () => {
+    const result = resolveModelEquivalent('sonnet', 'minimax');
+    expect(result).not.toBeNull();
+    expect(result?.modelId).toBe('claude-sonnet-4-6');
+    expect(result?.reasoning).toEqual({ type: 'thinking_tokens', level: 'medium' });
+  });
+
+  it('resolves haiku shorthand to claude-haiku-4-5-20251001 for minimax with no reasoning', () => {
+    const result = resolveModelEquivalent('haiku', 'minimax');
+    expect(result).not.toBeNull();
+    expect(result?.modelId).toBe('claude-haiku-4-5-20251001');
+    expect(result?.reasoning).toEqual({ type: 'none' });
+  });
+
+  it('reverse-lookup: full model ID claude-opus-4-6 resolves to minimax spec', () => {
+    const result = resolveModelEquivalent('claude-opus-4-6', 'minimax');
+    expect(result).not.toBeNull();
+    expect(result?.modelId).toBe('claude-opus-4-6');
+  });
+
+  it('reverse-lookup: full model ID claude-sonnet-4-6 resolves to minimax spec', () => {
+    const result = resolveModelEquivalent('claude-sonnet-4-6', 'minimax');
+    expect(result).not.toBeNull();
+    expect(result?.modelId).toBe('claude-sonnet-4-6');
+  });
+
+  it('reverse-lookup: full model ID claude-haiku-4-5-20251001 resolves to minimax spec', () => {
+    const result = resolveModelEquivalent('claude-haiku-4-5-20251001', 'minimax');
+    expect(result).not.toBeNull();
+    expect(result?.modelId).toBe('claude-haiku-4-5-20251001');
+  });
+
+  it('reverse-lookup: full model ID claude-opus-4-5-20251101 resolves to minimax spec', () => {
+    const result = resolveModelEquivalent('claude-opus-4-5-20251101', 'minimax');
+    expect(result).not.toBeNull();
+    expect(result?.modelId).toBe('claude-opus-4-5-20251101');
+  });
+
+  it('user override takes precedence over the default minimax entry', () => {
+    const override = {
+      opus: {
+        minimax: {
+          modelId: 'custom-minimax-opus',
+          reasoning: { type: 'thinking_tokens' as const, level: 'high' as const },
+        },
+      },
+    };
+    const result = resolveModelEquivalent('opus', 'minimax', override);
+    expect(result).not.toBeNull();
+    expect(result?.modelId).toBe('custom-minimax-opus');
+  });
+
+  it('returns null for an unknown model when no equivalence exists for minimax', () => {
+    const result = resolveModelEquivalent('totally-fake-model-xyz', 'minimax');
+    expect(result).toBeNull();
   });
 });
