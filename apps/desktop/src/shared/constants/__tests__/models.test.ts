@@ -124,70 +124,69 @@ describe('getProviderPresetOrFallback', () => {
 // =============================================================================
 // resolveModelEquivalent — minimax provider
 // (Regression for the missing BUILTIN_TO_SUPPORTED entry that caused
-// "No available account in priority queue" for minimax accounts. The
-// minimax account always uses the M3 model regardless of which Claude
-// shorthand/full-ID is requested.)
+// "No available account in priority queue" for minimax accounts.)
 // =============================================================================
 
 describe('resolveModelEquivalent — minimax provider', () => {
-  it('resolves opus shorthand to MiniMax-M3 for minimax', () => {
+  it('resolves opus shorthand to claude-opus-4-6 for minimax', () => {
     const result = resolveModelEquivalent('opus', 'minimax');
     expect(result).not.toBeNull();
-    expect(result?.modelId).toBe('MiniMax-M3');
-    expect(result?.reasoning).toEqual({ type: 'none' });
+    expect(result?.modelId).toBe('claude-opus-4-6');
+    expect(result?.reasoning).toEqual({ type: 'adaptive_effort', level: 'high' });
   });
 
-  it('resolves opus-1m shorthand to MiniMax-M3 for minimax', () => {
+  it('resolves opus-1m shorthand to claude-opus-4-6 for minimax', () => {
     const result = resolveModelEquivalent('opus-1m', 'minimax');
     expect(result).not.toBeNull();
-    expect(result?.modelId).toBe('MiniMax-M3');
+    expect(result?.modelId).toBe('claude-opus-4-6');
   });
 
-  it('resolves opus-4.5 shorthand to MiniMax-M3 for minimax', () => {
+  it('resolves opus-4.5 shorthand to claude-opus-4-5-20251101 for minimax', () => {
     const result = resolveModelEquivalent('opus-4.5', 'minimax');
     expect(result).not.toBeNull();
-    expect(result?.modelId).toBe('MiniMax-M3');
+    expect(result?.modelId).toBe('claude-opus-4-5-20251101');
+    expect(result?.reasoning).toEqual({ type: 'thinking_tokens', level: 'high' });
   });
 
-  it('resolves sonnet shorthand to MiniMax-M3 for minimax', () => {
+  it('resolves sonnet shorthand to claude-sonnet-4-6 for minimax', () => {
     const result = resolveModelEquivalent('sonnet', 'minimax');
     expect(result).not.toBeNull();
-    expect(result?.modelId).toBe('MiniMax-M3');
-    expect(result?.reasoning).toEqual({ type: 'none' });
+    expect(result?.modelId).toBe('claude-sonnet-4-6');
+    expect(result?.reasoning).toEqual({ type: 'thinking_tokens', level: 'medium' });
   });
 
-  it('resolves haiku shorthand to MiniMax-M3 for minimax', () => {
+  it('resolves haiku shorthand to claude-haiku-4-5-20251001 for minimax with no reasoning', () => {
     const result = resolveModelEquivalent('haiku', 'minimax');
     expect(result).not.toBeNull();
-    expect(result?.modelId).toBe('MiniMax-M3');
+    expect(result?.modelId).toBe('claude-haiku-4-5-20251001');
     expect(result?.reasoning).toEqual({ type: 'none' });
   });
 
-  it('reverse-lookup: full model ID claude-opus-4-6 resolves to MiniMax-M3 for minimax', () => {
+  it('reverse-lookup: full model ID claude-opus-4-6 resolves to minimax spec', () => {
     const result = resolveModelEquivalent('claude-opus-4-6', 'minimax');
     expect(result).not.toBeNull();
-    expect(result?.modelId).toBe('MiniMax-M3');
+    expect(result?.modelId).toBe('claude-opus-4-6');
   });
 
-  it('reverse-lookup: full model ID claude-sonnet-4-6 resolves to MiniMax-M3 for minimax', () => {
+  it('reverse-lookup: full model ID claude-sonnet-4-6 resolves to minimax spec', () => {
     const result = resolveModelEquivalent('claude-sonnet-4-6', 'minimax');
     expect(result).not.toBeNull();
-    expect(result?.modelId).toBe('MiniMax-M3');
+    expect(result?.modelId).toBe('claude-sonnet-4-6');
   });
 
-  it('reverse-lookup: full model ID claude-haiku-4-5-20251001 resolves to MiniMax-M3 for minimax', () => {
+  it('reverse-lookup: full model ID claude-haiku-4-5-20251001 resolves to minimax spec', () => {
     const result = resolveModelEquivalent('claude-haiku-4-5-20251001', 'minimax');
     expect(result).not.toBeNull();
-    expect(result?.modelId).toBe('MiniMax-M3');
+    expect(result?.modelId).toBe('claude-haiku-4-5-20251001');
   });
 
-  it('reverse-lookup: full model ID claude-opus-4-5-20251101 resolves to MiniMax-M3 for minimax', () => {
+  it('reverse-lookup: full model ID claude-opus-4-5-20251101 resolves to minimax spec', () => {
     const result = resolveModelEquivalent('claude-opus-4-5-20251101', 'minimax');
     expect(result).not.toBeNull();
-    expect(result?.modelId).toBe('MiniMax-M3');
+    expect(result?.modelId).toBe('claude-opus-4-5-20251101');
   });
 
-  it('user override takes precedence over the default MiniMax-M3 mapping', () => {
+  it('user override takes precedence over the default minimax entry', () => {
     const override = {
       opus: {
         minimax: {

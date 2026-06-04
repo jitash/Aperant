@@ -472,8 +472,8 @@ describe('resolveAuthFromQueue — minimax provider', () => {
 
   it('resolves a minimax account when the equivalence table maps opus shorthand', async () => {
     mockResolveModelEquivalent.mockReturnValueOnce({
-      modelId: 'MiniMax-M3',
-      reasoning: { type: 'none' },
+      modelId: 'claude-opus-4-6',
+      reasoning: { type: 'adaptive_effort', level: 'high' },
     });
 
     const result = await resolveAuthFromQueue('opus', [minimaxAccount]);
@@ -482,32 +482,32 @@ describe('resolveAuthFromQueue — minimax provider', () => {
     expect(result?.accountId).toBe('acc-minimax');
     expect(result?.apiKey).toBe(minimaxAccount.apiKey);
     expect(result?.resolvedProvider).toBe('minimax');
-    expect(result?.resolvedModelId).toBe('MiniMax-M3');
-    expect(result?.reasoningConfig).toEqual({ type: 'none' });
+    expect(result?.resolvedModelId).toBe('claude-opus-4-6');
+    expect(result?.reasoningConfig).toEqual({ type: 'adaptive_effort', level: 'high' });
   });
 
   it('resolves a minimax account when the equivalence table maps sonnet shorthand', async () => {
     mockResolveModelEquivalent.mockReturnValueOnce({
-      modelId: 'MiniMax-M3',
-      reasoning: { type: 'none' },
+      modelId: 'claude-sonnet-4-6',
+      reasoning: { type: 'thinking_tokens', level: 'medium' },
     });
 
     const result = await resolveAuthFromQueue('sonnet', [minimaxAccount]);
 
     expect(result?.resolvedProvider).toBe('minimax');
-    expect(result?.resolvedModelId).toBe('MiniMax-M3');
+    expect(result?.resolvedModelId).toBe('claude-sonnet-4-6');
   });
 
   it('resolves a minimax account when the equivalence table maps haiku shorthand', async () => {
     mockResolveModelEquivalent.mockReturnValueOnce({
-      modelId: 'MiniMax-M3',
+      modelId: 'claude-haiku-4-5-20251001',
       reasoning: { type: 'none' },
     });
 
     const result = await resolveAuthFromQueue('haiku', [minimaxAccount]);
 
     expect(result?.resolvedProvider).toBe('minimax');
-    expect(result?.resolvedModelId).toBe('MiniMax-M3');
+    expect(result?.resolvedModelId).toBe('claude-haiku-4-5-20251001');
   });
 
   it('skips minimax account when no model equivalence exists for the requested model', async () => {
@@ -534,8 +534,8 @@ describe('resolveAuthFromQueue — minimax provider', () => {
       updatedAt: 0,
     };
     mockResolveModelEquivalent.mockReturnValueOnce({
-      modelId: 'MiniMax-M3',
-      reasoning: { type: 'none' },
+      modelId: 'claude-opus-4-6',
+      reasoning: { type: 'adaptive_effort', level: 'high' },
     });
 
     const result = await resolveAuthFromQueue('opus', [minimaxAccount, anthropicAccount]);
@@ -554,8 +554,8 @@ describe('resolveAuthFromQueue — minimax provider', () => {
 
   it('preserves the account baseURL when resolving the minimax account', async () => {
     mockResolveModelEquivalent.mockReturnValueOnce({
-      modelId: 'MiniMax-M3',
-      reasoning: { type: 'none' },
+      modelId: 'claude-opus-4-6',
+      reasoning: { type: 'adaptive_effort', level: 'high' },
     });
 
     const result = await resolveAuthFromQueue('opus', [minimaxAccount]);
