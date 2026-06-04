@@ -529,7 +529,6 @@
     "providerAnthropic": "Anthropic",
     "providerZai": "Z.AI",
     "providerZhipu": "ZHIPU AI",
-    "providerMinimax": "MiniMax",
     "crossProvider": "Cross-Provider",
     "crossProviderConfig": "Cross-Provider",
     "crossProviderUsage": "Cross-Provider Usage",
