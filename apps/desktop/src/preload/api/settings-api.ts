@@ -18,6 +18,7 @@ export interface SettingsAPI {
     git: ToolDetectionResult;
     gh: ToolDetectionResult;
     claude: ToolDetectionResult;
+    codex: ToolDetectionResult;
   }>>;
 
   // Claude Code onboarding status
@@ -65,6 +66,7 @@ export const createSettingsAPI = (): SettingsAPI => ({
     git: ToolDetectionResult;
     gh: ToolDetectionResult;
     claude: ToolDetectionResult;
+    codex: ToolDetectionResult;
   }>> =>
     ipcRenderer.invoke(IPC_CHANNELS.SETTINGS_GET_CLI_TOOLS_INFO),
 

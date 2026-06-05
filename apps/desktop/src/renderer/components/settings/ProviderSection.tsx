@@ -1,18 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Plus, Terminal } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '../ui/button';
 import { cn } from '../../lib/utils';
 import { ProviderAccountCard } from './ProviderAccountCard';
 import { OllamaConnectionPanel } from './OllamaConnectionPanel';
 import type { BillingModel, BuiltinProvider, ProviderAccount, ProviderInfo } from '@shared/types/provider-account';
+import type { ToolDetectionResult } from '@shared/types';
 
 interface ProviderSectionProps {
   provider: ProviderInfo;
   accounts: ProviderAccount[];
   envDetected: boolean;
-  onAddAccount: (provider: BuiltinProvider, authType: 'oauth' | 'api-key', billingModel?: BillingModel) => void;
+  onAddAccount: (provider: BuiltinProvider, authType: 'oauth' | 'api-key' | 'local-cli', billingModel?: BillingModel) => void;
   onEditAccount: (account: ProviderAccount) => void;
   onDeleteAccount: (id: string) => void;
   onReauthAccount?: (account: ProviderAccount) => void;
@@ -29,6 +30,23 @@ export function ProviderSection({
 }: ProviderSectionProps) {
   const { t } = useTranslation('settings');
   const [isOpen, setIsOpen] = useState(accounts.length > 0);
+
+  // For 'local-cli' provider, scan the user's machine for installed CLIs
+  // (claude, codex) and surface them as quick-add chips. Mirrors Open
+  // Design's "Integrations" page pattern.
+  const [cliScan, setCliScan] = useState<{ claude?: ToolDetectionResult; codex?: ToolDetectionResult } | null>(null);
+  useEffect(() => {
+    if (provider.id !== 'local-cli' || !isOpen) return;
+    let cancelled = false;
+    window.electronAPI.getCliToolsInfo()
+      .then((res) => {
+        if (cancelled || !res.success || !res.data) return;
+        const data = res.data as { claude?: ToolDetectionResult; codex?: ToolDetectionResult };
+        setCliScan({ claude: data.claude, codex: data.codex });
+      })
+      .catch(() => { /* ignore — show empty state */ });
+    return () => { cancelled = true; };
+  }, [provider.id, isOpen]);
 
   const hasOAuth = provider.authMethods.includes('oauth');
   const hasApiKey = provider.authMethods.includes('api-key');
@@ -101,7 +119,7 @@ export function ProviderSection({
                 <>
                   {/* Account cards */}
                   {accounts.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-border p-3 text-center">
+                    <div className="rounded-lg border border-dashed border-border p-3 space-y-3">
                       {envDetected ? (
                         <p className="text-xs text-muted-foreground">
                           {t('providers.section.envCredentialDetected', { envVar: provider.envVars[0] })}
@@ -109,6 +127,64 @@ export function ProviderSection({
                       ) : (
                         <p className="text-xs text-muted-foreground">
                           {t('providers.section.noAccounts')}
+                        </p>
+                      )}
+
+                      {/* Local CLI: detected binaries quick-add */}
+                      {provider.id === 'local-cli' && cliScan && (cliScan.claude || cliScan.codex) && (
+                        <div className="space-y-1.5 text-left">
+                          <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-medium">
+                            {t('providers.section.localCli.detected')}
+                          </p>
+                          {cliScan.claude && cliScan.claude.found && (
+                            <div className="flex items-center justify-between rounded-md border border-border/50 bg-background/50 px-2.5 py-1.5">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Terminal className="h-3.5 w-3.5 text-cyan-500 shrink-0" />
+                                <div className="min-w-0">
+                                  <p className="text-xs font-medium truncate">
+                                    Claude Code {cliScan.claude.version ? <span className="text-muted-foreground font-normal">v{cliScan.claude.version}</span> : null}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground truncate">{cliScan.claude.path}</p>
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => onAddAccount('local-cli', 'local-cli')}
+                                className="h-6 text-[11px] gap-1 shrink-0"
+                              >
+                                <Plus className="h-3 w-3" />
+                                {t('providers.section.localCli.addClaude')}
+                              </Button>
+                            </div>
+                          )}
+                          {cliScan.codex && cliScan.codex.found && (
+                            <div className="flex items-center justify-between rounded-md border border-border/50 bg-background/50 px-2.5 py-1.5">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Terminal className="h-3.5 w-3.5 text-cyan-500 shrink-0" />
+                                <div className="min-w-0">
+                                  <p className="text-xs font-medium truncate">
+                                    Codex CLI {cliScan.codex.version ? <span className="text-muted-foreground font-normal">v{cliScan.codex.version}</span> : null}
+                                  </p>
+                                  <p className="text-[10px] text-muted-foreground truncate">{cliScan.codex.path}</p>
+                                </div>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => onAddAccount('local-cli', 'local-cli')}
+                                className="h-6 text-[11px] gap-1 shrink-0"
+                              >
+                                <Plus className="h-3 w-3" />
+                                {t('providers.section.localCli.addCodex')}
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      {provider.id === 'local-cli' && cliScan && !cliScan.claude?.found && !cliScan.codex?.found && (
+                        <p className="text-[11px] text-muted-foreground">
+                          {t('providers.section.localCli.notDetected')}
                         </p>
                       )}
                     </div>

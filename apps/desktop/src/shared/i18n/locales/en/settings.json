@@ -759,6 +759,12 @@
       "addApiKey": "Add API Key",
       "addEndpoint": "Add Endpoint"
     },
+    "localCli": {
+      "detected": "Detected on your machine",
+      "notDetected": "No claude or codex CLI found. Install Claude Code (https://claude.ai/download) or Codex CLI (https://github.com/openai/codex) to use this provider.",
+      "addClaude": "Add Claude",
+      "addCodex": "Add Codex"
+    },
     "dialog": {
       "addTitle": "Add Account",
       "editTitle": "Edit Account",

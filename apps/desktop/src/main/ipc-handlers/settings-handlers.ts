@@ -522,6 +522,7 @@ export function registerSettingsHandlers(
       gh: ReturnType<typeof getToolInfo>;
       glab: ReturnType<typeof getToolInfo>;
       claude: ReturnType<typeof getToolInfo>;
+      codex: ReturnType<typeof getToolInfo>;
     }>> => {
       try {
         return {
@@ -532,6 +533,7 @@ export function registerSettingsHandlers(
             gh: getToolInfo('gh'),
             glab: getToolInfo('glab'),
             claude: getToolInfo('claude'),
+            codex: getToolInfo('codex'),
           },
         };
       } catch (error) {
