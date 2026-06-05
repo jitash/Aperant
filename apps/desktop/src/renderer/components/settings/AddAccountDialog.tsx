@@ -29,7 +29,7 @@ interface AddAccountDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   provider: BuiltinProvider;
-  authType: 'oauth' | 'api-key';
+  authType: 'oauth' | 'api-key' | 'local-cli';
   /** Override billing model (e.g., Z.AI Coding Plan vs usage-based API key) */
   billingModel?: BillingModel;
   editAccount?: ProviderAccount;
@@ -54,6 +54,8 @@ export function AddAccountDialog({
   const [apiKey, setApiKey] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
   const [region, setRegion] = useState('us-east-1');
+  const [localCliBinary, setLocalCliBinary] = useState<'claude' | 'codex'>('claude');
+  const [localCliBinaryPath, setLocalCliBinaryPath] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
   // Custom models for openai-compatible endpoints
@@ -84,6 +86,10 @@ export function AddAccountDialog({
         setBaseUrl(editAccount.baseUrl ?? '');
         setRegion(editAccount.region ?? 'us-east-1');
         setCustomModels(editAccount.customModels ?? []);
+        if (editAccount.authType === 'local-cli') {
+          setLocalCliBinary(editAccount.localCliBinary ?? 'claude');
+          setLocalCliBinaryPath(editAccount.localCliBinaryPath ?? '');
+        }
       } else {
         setName('');
         setApiKey('');
@@ -166,6 +172,7 @@ export function AddAccountDialog({
   const needsBaseUrl = provider === 'ollama' || provider === 'azure' || provider === 'openai-compatible' || provider === 'zai' || (provider === 'anthropic' && authType === 'api-key');
   const needsRegion = provider === 'amazon-bedrock';
   const isBaseUrlRequired = provider === 'ollama' || provider === 'azure' || provider === 'openai-compatible';
+  const isLocalCli = provider === 'local-cli' && authType === 'local-cli';
 
   // Auto-save for Anthropic OAuth on success (mirrors the Codex auto-save behavior)
   useEffect(() => {
@@ -415,6 +422,8 @@ export function AddAccountDialog({
         claudeProfileId: isOAuthOnly && !isCodexOAuth ? oauthProfileId ?? undefined : undefined,
         email: isOAuthOnly ? (oauthEmail ?? (isEditing ? editAccount?.email : undefined)) : undefined,
         customModels: provider === 'openai-compatible' && customModels.length > 0 ? customModels : undefined,
+        localCliBinary: isLocalCli ? localCliBinary : undefined,
+        localCliBinaryPath: isLocalCli && localCliBinaryPath.trim() ? localCliBinaryPath.trim() : undefined,
       };
 
       let result: {
@@ -631,6 +640,46 @@ export function AddAccountDialog({
                             : t('providers.dialog.placeholders.baseUrl')
                   }
                 />
+              </div>
+            )}
+
+            {/* Local CLI (BYOA): binary picker + optional custom path */}
+            {isLocalCli && (
+              <div className="space-y-3 rounded-md border border-cyan-500/20 bg-cyan-500/5 p-3">
+                <p className="text-xs text-muted-foreground">
+                  {t('providers.dialog.localCli.description')}
+                </p>
+                <div className="space-y-2">
+                  <Label htmlFor="account-localcli-binary">
+                    {t('providers.dialog.localCli.binary')}
+                  </Label>
+                  <Select
+                    value={localCliBinary}
+                    onValueChange={(v) => setLocalCliBinary(v as 'claude' | 'codex')}
+                  >
+                    <SelectTrigger id="account-localcli-binary">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="claude">{t('providers.dialog.localCli.binaryClaude')}</SelectItem>
+                      <SelectItem value="codex">{t('providers.dialog.localCli.binaryCodex')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="account-localcli-path">
+                    {t('providers.dialog.localCli.path')}
+                    <span className="text-muted-foreground font-normal ml-1">
+                      {t('providers.dialog.optional')}
+                    </span>
+                  </Label>
+                  <Input
+                    id="account-localcli-path"
+                    value={localCliBinaryPath}
+                    onChange={(e) => setLocalCliBinaryPath(e.target.value)}
+                    placeholder={localCliBinary === 'claude' ? '/opt/homebrew/bin/claude' : '/opt/homebrew/bin/codex'}
+                  />
+                </div>
               </div>
             )}
 

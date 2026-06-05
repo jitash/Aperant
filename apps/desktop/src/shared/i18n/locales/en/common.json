@@ -544,6 +544,7 @@
     "providerBedrock": "AWS Bedrock",
     "providerAzure": "Azure OpenAI",
     "providerOllama": "Ollama",
+    "providerLocalCli": "Local CLI",
     "providerCustomEndpoint": "Custom Endpoint",
     "billingSubscription": "Subscription",
     "billingPayPerUse": "Pay-per-use",

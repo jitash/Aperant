@@ -23,6 +23,7 @@ export type AuthSource =
   | 'profile-api-key'     // API key stored in profile settings
   | 'environment'         // Environment variable (ANTHROPIC_API_KEY, OPENAI_API_KEY, etc.)
   | 'default'             // Default provider credentials (e.g., built-in defaults)
+  | 'local-cli'           // Local CLI binary (claude / codex) — BYOA flow
   | 'none';               // No credentials found
 
 // ============================================

@@ -269,6 +269,7 @@ export interface AppSettings {
   githubCLIPath?: string;
   gitlabCLIPath?: string;
   claudePath?: string;
+  codexPath?: string;
   autoBuildPath?: string;
   autoUpdateAutoBuild: boolean;
   autoNameTerminals: boolean;

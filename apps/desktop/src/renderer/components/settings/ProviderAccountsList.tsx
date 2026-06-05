@@ -38,7 +38,7 @@ export function ProviderAccountsList() {
   const [dialogState, setDialogState] = useState<{
     open: boolean;
     provider: BuiltinProvider;
-    authType: 'oauth' | 'api-key';
+    authType: 'oauth' | 'api-key' | 'local-cli';
     billingModel?: BillingModel;
     editAccount?: ProviderAccount;
   }>({
@@ -88,7 +88,7 @@ export function ProviderAccountsList() {
     return { key, label: t(labelKey), providers };
   });
 
-  const handleAddAccount = (provider: BuiltinProvider, authType: 'oauth' | 'api-key', billingModel?: BillingModel) => {
+  const handleAddAccount = (provider: BuiltinProvider, authType: 'oauth' | 'api-key' | 'local-cli', billingModel?: BillingModel) => {
     setDialogState({ open: true, provider, authType, billingModel });
   };
 

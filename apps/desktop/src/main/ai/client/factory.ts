@@ -27,6 +27,7 @@ import { createMcpClientsForAgent, closeAllMcpClients, mergeMcpTools } from '../
 import type { McpClientResult } from '../mcp/types';
 import { createProvider, detectProviderFromModel } from '../providers/factory';
 import { buildToolRegistry } from '../tools/build-registry';
+import { getToolPath } from '../../cli-tool-manager';
 import type { QueueResolvedAuth } from '../auth/types';
 import type {
   AgentClientConfig,
@@ -229,6 +230,9 @@ export async function createSimpleClient(
   let resolvedModelId: string;
   let resolvedThinkingLevel: ThinkingLevel = thinkingLevel;
   let queueAuth: QueueResolvedAuth | null = null;
+  let runtime: 'vercel-ai-sdk' | 'local-cli' = 'vercel-ai-sdk';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let localCliConfig: any;
 
   if (queueConfig) {
     // Queue-based resolution: use global priority queue
@@ -285,6 +289,26 @@ export async function createSimpleClient(
     });
   }
 
+  // Local-CLI runtime: when the queue resolved a local-cli account, populate
+  // localCliConfig with the binary path (from CLI tool manager detection) and
+  // set the runtime discriminator. The runner will branch on client.runtime.
+  if (queueAuth?.source === 'local-cli') {
+    const binary = queueAuth.apiKey === 'codex' ? 'codex' : 'claude';
+    const binaryPath = binary === 'codex'
+      ? getToolPath('codex')
+      : getToolPath('claude');
+    localCliConfig = {
+      binary,
+      binaryPath,
+      extraArgs: [],
+      env: { ...process.env } as Record<string, string>,
+    };
+    runtime = 'local-cli';
+    // The LanguageModel is required by the type but unused in the local-cli
+    // path; runners will not call streamText() with this model.
+    model = null as unknown as typeof model;
+  }
+
   return {
     model,
     resolvedModelId,
@@ -293,5 +317,6 @@ export async function createSimpleClient(
     maxSteps,
     thinkingLevel: resolvedThinkingLevel,
     ...(queueAuth ? { queueAuth } : {}),
+    ...(localCliConfig ? { runtime, localCliConfig } : {}),
   };
 }

@@ -76,7 +76,7 @@ async function resolveFromProviderAccount(ctx: AuthResolverContext): Promise<Res
   const accountsRaw = _getSettingsValue('providerAccounts');
   if (!accountsRaw) return null;
 
-  let accounts: Array<{ provider: string; isActive: boolean; authType: string; apiKey?: string; baseUrl?: string; claudeProfileId?: string; billingModel?: string }>;
+  let accounts: Array<{ provider: string; isActive: boolean; authType: string; apiKey?: string; baseUrl?: string; claudeProfileId?: string; billingModel?: string; localCliBinary?: string; localCliBinaryPath?: string }>;
   try {
     accounts = typeof accountsRaw === 'string' ? JSON.parse(accountsRaw) : (accountsRaw as any);
   } catch {
@@ -123,6 +123,17 @@ async function resolveFromProviderAccount(ctx: AuthResolverContext): Promise<Res
       apiKey: account.apiKey,
       source: 'profile-api-key',
       baseURL,
+    };
+  }
+
+  // Local-CLI accounts (BYOA: spawn a local claude/codex binary)
+  if (account.authType === 'local-cli' && account.localCliBinary) {
+    return {
+      // Repurpose apiKey field to carry the binary path (the factory detects
+      // source === 'local-cli' and reads this). The 'apiKey' field is never
+      // sent over the wire in this branch.
+      apiKey: account.localCliBinaryPath || account.localCliBinary,
+      source: 'local-cli',
     };
   }
 
@@ -544,6 +555,17 @@ async function resolveCredentialsForAccount(
       apiKey: account.apiKey,
       source: 'profile-api-key',
       baseURL,
+    };
+  }
+
+  // Local-CLI accounts (BYOA: spawn a local claude/codex binary)
+  if (account.authType === 'local-cli' && account.localCliBinary) {
+    return {
+      // Repurpose apiKey field to carry the binary path (the factory detects
+      // source === 'local-cli' and reads this). The 'apiKey' field is never
+      // sent over the wire in this branch.
+      apiKey: account.localCliBinaryPath || account.localCliBinary,
+      source: 'local-cli',
     };
   }
 

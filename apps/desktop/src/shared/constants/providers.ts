@@ -68,6 +68,12 @@ export const PROVIDER_REGISTRY: ProviderInfo[] = [
     configFields: ['baseUrl'],
   },
   {
+    id: 'local-cli', name: 'Local CLI', description: 'Spawn a local Claude Code or Codex CLI binary (BYOA)',
+    category: 'local',
+    authMethods: ['local-cli'], envVars: [],
+    configFields: ['cliPath'],
+  },
+  {
     id: 'openai-compatible', name: 'Custom Endpoint', description: 'Any OpenAI-compatible API (OpenRouter, proxies, local servers)',
     category: 'local',
     authMethods: ['api-key'], envVars: [],

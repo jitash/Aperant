@@ -21,6 +21,7 @@ import type { ModelShorthand, ThinkingLevel } from '../config/types';
 import type { SecurityProfile } from '../security/bash-validator';
 import { safeParseJson } from '../../utils/json-repair';
 import { tryLoadPrompt } from '../prompts/prompt-loader';
+import { invokeLocalCli } from './local-cli-runtime';
 
 // =============================================================================
 // Constants
@@ -144,8 +145,46 @@ Do NOT ask questions. Make educated inferences and create the file.`;
 
     const discoveryUserPrompt = 'Analyze the project and create the discovery document. Use the available tools to explore the codebase, then write your findings as JSON to the output file specified in the context above.';
 
-    try {
-      const result = streamText({
+    // Local-CLI runtime: spawn the user's local CLI (claude / codex) and
+    // treat its NDJSON output as the agent's stream. Skips Vercel AI SDK's
+    // streamText path entirely (the model field is null for local-cli).
+    if (client.runtime === 'local-cli' && client.localCliConfig) {
+      const cfg = client.localCliConfig;
+      let assembled = '';
+      try {
+        for await (const ev of invokeLocalCli({
+          binary: cfg.binary,
+          binaryPath: cfg.binaryPath,
+          cwd: projectDir,
+          system: prompt,
+          prompt: discoveryUserPrompt,
+          extraArgs: cfg.extraArgs,
+          env: cfg.env,
+          abortSignal,
+        })) {
+          if (ev.type === 'text-delta') {
+            assembled += ev.text;
+            onStream?.({ type: 'text-delta', text: ev.text });
+          } else if (ev.type === 'tool-call') {
+            onStream?.({ type: 'tool-use', name: ev.name });
+          } else if (ev.type === 'error') {
+            onStream?.({ type: 'error', error: ev.error });
+          }
+        }
+      } catch (err) {
+        errors.push(`Attempt ${attempt + 1}: ${err instanceof Error ? err.message : String(err)}`);
+      }
+      if (!existsSync(discoveryFile)) {
+        try {
+          writeFileSync(discoveryFile, assembled, 'utf-8');
+        } catch (writeErr) {
+          errors.push(`Attempt ${attempt + 1}: Local CLI did not write discovery file and fallback write failed: ${writeErr instanceof Error ? writeErr.message : String(writeErr)}`);
+          continue;
+        }
+      }
+    } else {
+      try {
+        const result = streamText({
         model: client.model,
         system: isCodexDiscovery ? undefined : prompt,
         prompt: discoveryUserPrompt,
@@ -177,25 +216,26 @@ Do NOT ask questions. Make educated inferences and create the file.`;
           }
         }
       }
-
-      // Validate output
-      if (existsSync(discoveryFile)) {
-        const data = safeParseJson<Record<string, unknown>>(readFileSync(discoveryFile, 'utf-8'));
-        if (data) {
-          const required = ['project_name', 'target_audience', 'product_vision'];
-          const missing = required.filter((k) => !(k in data));
-          if (missing.length === 0) {
-            return { phase: 'discovery', success: true, outputs: [discoveryFile], errors: [] };
-          }
-          errors.push(`Attempt ${attempt + 1}: Missing fields: ${missing.join(', ')}`);
-        } else {
-          errors.push(`Attempt ${attempt + 1}: Invalid JSON in discovery file`);
-        }
-      } else {
-        errors.push(`Attempt ${attempt + 1}: Discovery file not created`);
+      } catch (error) {
+        errors.push(`Attempt ${attempt + 1}: ${error instanceof Error ? error.message : String(error)}`);
       }
-    } catch (error) {
-      errors.push(`Attempt ${attempt + 1}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+
+    // Validate output
+    if (existsSync(discoveryFile)) {
+      const data = safeParseJson<Record<string, unknown>>(readFileSync(discoveryFile, 'utf-8'));
+      if (data) {
+        const required = ['project_name', 'target_audience', 'product_vision'];
+        const missing = required.filter((k) => !(k in data));
+        if (missing.length === 0) {
+          return { phase: 'discovery', success: true, outputs: [discoveryFile], errors: [] };
+        }
+        errors.push(`Attempt ${attempt + 1}: Missing fields: ${missing.join(', ')}`);
+      } else {
+        errors.push(`Attempt ${attempt + 1}: Invalid JSON in discovery file`);
+      }
+    } else {
+      errors.push(`Attempt ${attempt + 1}: Discovery file not created`);
     }
   }
 

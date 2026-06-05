@@ -800,6 +800,13 @@
         "region": "AWS Region",
         "models": "Models"
       },
+      "localCli": {
+        "description": "Spawn a local Claude Code or Codex CLI binary (BYOA). The CLI is responsible for authenticating with the model provider.",
+        "binary": "Binary",
+        "binaryClaude": "Claude Code (claude)",
+        "binaryCodex": "Codex CLI (codex)",
+        "path": "Custom path (optional)"
+      },
       "placeholders": {
         "name": "My Account",
         "apiKey": "sk-...",

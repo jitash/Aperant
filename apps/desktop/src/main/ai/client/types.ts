@@ -116,7 +116,7 @@ export interface AgentClientResult {
  * No MCP clients, minimal tool set.
  */
 export interface SimpleClientResult {
-  /** Resolved language model instance */
+  /** Resolved language model instance (for the 'vercel-ai-sdk' runtime) */
   model: LanguageModel;
   /** Resolved model ID string (e.g. 'claude-opus-4-6', 'gpt-5.3-codex') — use for provider detection */
   resolvedModelId: string;
@@ -130,4 +130,31 @@ export interface SimpleClientResult {
   thinkingLevel: ThinkingLevel;
   /** Queue-resolved auth (present when queueConfig was used) */
   queueAuth?: QueueResolvedAuth;
+  /**
+   * Runtime discriminator. The default 'vercel-ai-sdk' goes through the AI
+   * SDK's streamText; 'local-cli' means the runner should spawn a local CLI
+   * (claude/codex) subprocess and use the localCliConfig below.
+   */
+  runtime?: 'vercel-ai-sdk' | 'local-cli';
+  /**
+   * Local CLI configuration. Populated only when runtime === 'local-cli'.
+   * The runner passes this to the local-cli-runtime module which spawns
+   * the binary and parses its NDJSON output.
+   */
+  localCliConfig?: LocalCliConfig;
+}
+
+/**
+ * Configuration for spawning a local CLI (Claude Code / Codex) as the agent
+ * runtime instead of going through the Vercel AI SDK HTTP providers.
+ */
+export interface LocalCliConfig {
+  /** Which binary to spawn */
+  binary: 'claude' | 'codex';
+  /** Resolved absolute path to the binary executable */
+  binaryPath: string;
+  /** Extra CLI args appended after the standard flags */
+  extraArgs: string[];
+  /** Resolved env (PATH augmentation, CLAUDE_CONFIG_DIR for OAuth, etc.) */
+  env: Record<string, string>;
 }
